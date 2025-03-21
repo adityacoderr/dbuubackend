@@ -1,10 +1,9 @@
-// backend/models/Image.js
 const mongoose = require('mongoose');
 
 const imageSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', // Assuming you have a User model to reference
+    ref: 'User', 
     required: true,
   },
   path: {
@@ -13,7 +12,7 @@ const imageSchema = new mongoose.Schema({
   },
   description: {
     type: String,
-    required: false, // Optional description
+    required: false, 
   },
   createdAt: {
     type: Date,

@@ -13,12 +13,10 @@ const storage = multer.diskStorage({
   }
 });
 
-// Initialize multer with storage configuration
 const upload = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // Max file size: 10MB
+  limits: { fileSize: 10 * 1024 * 1024 }, 
   fileFilter: (req, file, cb) => {
-    // Accept only image files
     const allowedTypes = ['image/jpeg', 'image/png', 'image/svg','image/jpg'];
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
@@ -26,16 +24,14 @@ const upload = multer({
       cb(new Error('Only image files are allowed'), false);
     }
   }
-}).single('image'); // Use 'image' as the form field name
+}).single('image'); 
 
-// POST route to upload the image
 router.post('/upload', (req, res) => {
     upload(req, res, async (err) => {
       if (err) {
         return res.status(400).json({ message: err.message });
       }
   
-      // Assuming that the userId and description are sent in the request body
       const { userId, description } = req.body;
   
       if (!userId) {
@@ -44,8 +40,8 @@ router.post('/upload', (req, res) => {
   
       const newImage = new Image({
         userId,
-        path: req.file.path, // Path where the image is stored
-        description, // Add the description to the image
+        path: req.file.path, 
+        description, 
       });
   
       try {
@@ -57,13 +53,11 @@ router.post('/upload', (req, res) => {
     });
   });
   
-// GET route to fetch all posts
-// GET route to fetch posts by user ID
+
 router.get('/posts/:userId', async (req, res) => {
-    const { userId } = req.params; // Get the userId from the request parameters
+    const { userId } = req.params; 
     console.log(userId);
     try {
-      // Fetch all images for the specific user
       const posts = await Image.find({ userId });
       console.log(posts);
   

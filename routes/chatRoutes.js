@@ -3,7 +3,6 @@ const router = express.Router();
 const Message = require("../models/Message");
 const authenticateToken = require("../middleware/authMiddleware");
 
-// ✅ Send a Message
 router.post("/send", authenticateToken, async (req, res) => {
     try {
         const { receiverId, message } = req.body;
@@ -18,7 +17,6 @@ router.post("/send", authenticateToken, async (req, res) => {
     }
 });
 
-// ✅ Get Chat Messages
 router.get("/:receiverId", authenticateToken, async (req, res) => {
     try {
         const senderId = req.user.id;

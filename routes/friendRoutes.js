@@ -5,7 +5,6 @@ const jwt = require("jsonwebtoken");
 const findMatch = require("../utils/findMatch");
 const authenticateToken = require("../middleware/authMiddleware");
 
-// ✅ Send Friend Request
 router.post("/send-request/:receiverId", authenticateToken, async (req, res) => {
     try {
         const senderId = req.user.id;
@@ -29,7 +28,6 @@ router.post("/send-request/:receiverId", authenticateToken, async (req, res) => 
     }
 });
 
-// ✅ Accept Friend Request
 router.post("/accept-request/:senderId", authenticateToken, async (req, res) => {
     try {
         const receiverId = req.user.id;
@@ -57,7 +55,6 @@ router.post("/accept-request/:senderId", authenticateToken, async (req, res) => 
     }
 });
 
-// ✅ Get Friend Requests
 router.get("/friend-requests", authenticateToken, async (req, res) => {
     try {
         const user = await User.findById(req.user.id).populate("friendRequests", "name username");
@@ -67,7 +64,6 @@ router.get("/friend-requests", authenticateToken, async (req, res) => {
     }
 });
 
-// ✅ Get Friends List
 router.get("/friends", authenticateToken, async (req, res) => {
     try {
         const user = await User.findById(req.user.id).populate("friends", "name username");
@@ -77,7 +73,6 @@ router.get("/friends", authenticateToken, async (req, res) => {
     }
 });
 
-// ✅ Find Match
 router.get("/find", authenticateToken, async (req, res) => {
     try {
         const currentUser = await User.findById(req.user.id);

@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.get("/search/:query", authenticateUser, async (req, res) => {
     try {
-        const query = req.params.query?.trim(); // Ensure query is not undefined or null
+        const query = req.params.query?.trim(); 
 
         if (!query) return res.json([]);
 
@@ -20,7 +20,7 @@ router.get("/search/:query", authenticateUser, async (req, res) => {
 
         res.json(users);
     } catch (error) {
-        console.error("Search Error:", error); // Log full error details
+        console.error("Search Error:", error); 
         res.status(500).json({ message: "Error searching users", error: error.message });
     }
 });
@@ -41,7 +41,7 @@ router.get("/profile/:username", authenticateUser,async (req, res) => {
         res.json({
             name: user.name,
             username: user.username,
-            email: user.email, // optional
+            email: user.email, 
             gender: user.gender,
             interests: user.interests,
             profileImage: user.profileImage,
@@ -54,10 +54,9 @@ router.get("/profile/:username", authenticateUser,async (req, res) => {
 
 
 
-// Protected Profile Route
 router.get("/profile", authenticateUser, async (req, res) => {
     try {
-        const user = await User.findById(req.user.id).select("-password"); // Exclude password
+        const user = await User.findById(req.user.id).select("-password"); 
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
