@@ -47,86 +47,67 @@ app.get("/", (req, res) => {
 });
 
 // In-memory data structures to store user data
-let onlineUsers = new Map(); // Store online users
-let waitingUsers = []; // Store users who are waiting for a match
+let waitingUsers = []; // Queue to store users waiting for a match
 
-// WebSocket Connection
 io.on("connection", (socket) => {
-    console.log("User connected:", socket.id);
+    console.log(`User connected: ${socket.id}`);
 
-    // Register the user
-    socket.on("register", (userData) => {
-        onlineUsers.set(userData.id, { socketId: socket.id, ...userData });
-        console.log(`User ${userData.id} is online with interests: ${userData.interests}`);
-    });
+    // When a user is looking for a match
+    socket.on("findMatch", ({ userId, gender, interests }) => {
+        console.log(`User ${userId} is looking for a match.`);
 
-    // Handle matchmaking logic
-    socket.on("findMatch", async ({ userId, gender, interests }) => {
-        console.log(`Finding match for ${userId}`);
-        console.log("Current waiting users:", waitingUsers); // Log current waiting users
-    
-        // Check if the user is already in the waiting list
-        const waitingUserIndex = waitingUsers.findIndex(user => user.userId === userId);
-        if (waitingUserIndex !== -1) {
-            // If the user is already in the waiting list, don't add them again
-            console.log(`User ${userId} is already in the waiting list`);
-            return;
-        }
-    
-        // Add the user to the waiting list if no match is found
-        waitingUsers.push({ userId, gender, interests, socketId: socket.id });
-        console.log(`⏳ Added ${userId} to waiting list`);
-    
-        // Now try to find a match
-        const matchIndex = waitingUsers.findIndex(
-            (user) => user.gender !== gender && user.interests.some(i => interests.includes(i))
-        );
-    
-        if (matchIndex !== -1) {
-            const match = waitingUsers.splice(matchIndex, 1)[0];
-    
-            // Send match info to both users
-            io.to(socket.id).emit("matchFound", match);
-            io.to(match.socketId).emit("matchFound", { userId, socketId: socket.id });
-    
-            console.log(`Matched ${userId} with ${match.userId}`);
+        // Check if another user is already waiting
+        if (waitingUsers.length > 0) {
+            const matchedUser = waitingUsers.shift(); // Get the first user in the queue
+
+            // Create a unique room for both users
+            const room = `room-${socket.id}-${matchedUser.socketId}`;
+
+            // Notify both users that they are matched
+            socket.join(room);
+            matchedUser.socket.join(room);
+
+            io.to(room).emit("matchFound", {
+                matchedUser: matchedUser.userId,
+                socketId: matchedUser.socketId,
+                room
+            });
+
+            console.log(`Matched ${userId} with ${matchedUser.userId} in ${room}`);
         } else {
-            console.log(`No match found for ${userId}`);
+            // No match found, add user to waiting list
+            waitingUsers.push({ socket, userId, socketId: socket.id, gender, interests });
+            console.log(`User ${userId} added to the waiting list.`);
         }
     });
-    
 
-    // Handle signaling for WebRTC (offer, answer, ICE candidates)
+    // WebRTC Signaling
+
+    // Handle WebRTC offer
     socket.on("offer", ({ offer, to }) => {
-        console.log(`Sending offer to ${to}`);
+        console.log(`Offer sent from ${socket.id} to ${to}`);
         io.to(to).emit("offer", { offer, from: socket.id });
     });
 
+    // Handle WebRTC answer
     socket.on("answer", ({ answer, to }) => {
-        console.log(`Sending answer to ${to}`);
+        console.log(`Answer sent from ${socket.id} to ${to}`);
         io.to(to).emit("answer", { answer, from: socket.id });
     });
 
+    // Handle ICE Candidate
     socket.on("ice-candidate", ({ candidate, to }) => {
-        console.log(`Sending ICE candidate to ${to}`);
-        io.to(to).emit("ice-candidate", { candidate });
+        console.log(`ICE Candidate sent from ${socket.id} to ${to}`);
+        io.to(to).emit("ice-candidate", { candidate, from: socket.id });
     });
 
-    // Handle disconnections
+    // Handle user disconnection
     socket.on("disconnect", () => {
-        console.log("User disconnected:", socket.id);
-
-        // Remove the user from onlineUsers map
-        onlineUsers.forEach((userData, userId) => {
-            if (userData.socketId === socket.id) {
-                onlineUsers.delete(userId);
-            }
-        });
-
-        // Remove the user from waitingUsers list
         waitingUsers = waitingUsers.filter(user => user.socketId !== socket.id);
+        console.log(`User disconnected: ${socket.id}`);
     });
 });
+
 
 // Start the server
 server.listen(5001, () => console.log("Server running on port 5001"));
