@@ -78,7 +78,7 @@ router.get("/find", authenticateToken, async (req, res) => {
         const currentUser = await User.findById(req.user.id);
         if (!currentUser) return res.status(404).json({ error: "User not found" });
 
-        const onlineUsers = await User.find({ _id: { $ne: currentUser._id } }); // Fetch all other users
+        const onlineUsers = await User.find({ _id: { $ne: currentUser._id } }); 
 
         const match = findMatch(currentUser, onlineUsers);
         if (match) {

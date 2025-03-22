@@ -1,14 +1,14 @@
 const { Server } = require("socket.io");
 
 const io = new Server(5001, {
-    cors: { origin: "http://localhost:5173" } // Allow frontend to connect
+    cors: { origin: "http://localhost:5173" } 
 });
 
 
 let onlineUsers = new Set();
 
 io.on("connection", (socket) => {
-    // console.log("A user connected:", socket.id);
+    
 
     socket.on("user-online", (username) => {
         if (username) {
@@ -25,7 +25,7 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect", () => {
-        // console.log("A user disconnected:", socket.id);
+        console.log("A user disconnected:", socket.id);
     });
 });
 
